@@ -10,8 +10,21 @@ export class UsersService {
   async findAll() {
     try {
       return await this.prisma.user.findMany()
-    } catch (e) {
+    } catch {
       throw new InternalServerErrorException('Unable to fetch users. Please try again later.')
+    }
+  }
+
+  async findById(id: string) {
+    try {
+      const user = await this.prisma.user.findUnique({ where: { id } })
+      if (!user) {
+        throw new NotFoundException('User not found.')
+      }
+      return user
+    } catch (e) {
+      if (e instanceof NotFoundException) throw e
+      throw new InternalServerErrorException('Unable to fetch user. Please try again later.')
     }
   }
 
@@ -23,9 +36,7 @@ export class UsersService {
       }
       return await this.prisma.user.create({ data })
     } catch (e) {
-      if (e instanceof BadRequestException) {
-        throw e
-      }
+      if (e instanceof BadRequestException) throw e
       throw new InternalServerErrorException('Unable to create user. Please try again later.')
     }
   }
@@ -42,11 +53,10 @@ export class UsersService {
           throw new BadRequestException('Email already exists.')
         }
       }
-      return await this.prisma.user.update({ where: { id }, data })
+      await this.prisma.user.update({ where: { id }, data })
+      return { message: 'User updated successfully.' }
     } catch (e) {
-      if (e instanceof NotFoundException || e instanceof BadRequestException) {
-        throw e
-      }
+      if (e instanceof NotFoundException || e instanceof BadRequestException) throw e
       throw new InternalServerErrorException('Unable to update user. Please try again later.')
     }
   }
@@ -57,11 +67,10 @@ export class UsersService {
       if (!existing) {
         throw new NotFoundException('User not found.')
       }
-      return await this.prisma.user.delete({ where: { id } })
+      await this.prisma.user.delete({ where: { id } })
+      return { message: 'User deleted successfully.' }
     } catch (e) {
-      if (e instanceof NotFoundException) {
-        throw e
-      }
+      if (e instanceof NotFoundException) throw e
       throw new InternalServerErrorException('Unable to delete user. Please try again later.')
     }
   }
