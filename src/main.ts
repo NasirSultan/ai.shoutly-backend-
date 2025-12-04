@@ -10,11 +10,7 @@ async function bootstrap() {
     credentials: true
   })
 
-  const port = process.env.PORT
-  if (!port) {
-    console.error('PORT not found in environment variables')
-    process.exit(1)
-  }
+  const port = process.env.PORT || 3000
 
   const server = await app.listen(port)
   server.setTimeout(300000)
