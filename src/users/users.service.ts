@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException, InternalServerError
 import { PrismaService } from '../lib/prisma.service'
 import { CreateUserDto } from './dto/create-user.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
+import { MailerSend, EmailParams, Sender, Recipient } from 'mailersend'
 
 @Injectable()
 export class UsersService {
@@ -28,18 +29,43 @@ export class UsersService {
     }
   }
 
-  async create(data: CreateUserDto) {
-    try {
-      const existing = await this.prisma.user.findUnique({ where: { email: data.email } })
-      if (existing) {
-        throw new BadRequestException('Email already exists.')
-      }
-      return await this.prisma.user.create({ data })
-    } catch (e) {
-      if (e instanceof BadRequestException) throw e
-      throw new InternalServerErrorException('Unable to create user. Please try again later.')
+async create(data: CreateUserDto) {
+  try {
+    const existing = await this.prisma.user.findUnique({ where: { email: data.email } });
+    if (existing) {
+      throw new BadRequestException('Email already exists.');
     }
+
+    const user = await this.prisma.user.create({ data });
+
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) throw new InternalServerErrorException('MailerSend API key is missing');
+
+    const mailerSend = new MailerSend({ apiKey });
+    const sentFrom = new Sender('noreply@shoutlyai.com', 'Shoutly AI');
+
+    const recipients = [new Recipient(user.email, user.name || 'User')];
+    const personalization = [{ email: user.email, data: { Name: user.name || 'User' } }];
+
+    const emailParams = new EmailParams()
+      .setFrom(sentFrom)
+      .setTo(recipients)
+      .setReplyTo(sentFrom)
+      .setSubject("You’re In! Your Early Access to Shoutly AI Is Confirmed")
+      .setTemplateId('0r83ql3yqomgzw1j')
+      .setPersonalization(personalization);
+
+    mailerSend.email.send(emailParams).catch((err) => {
+      console.error('Failed to send welcome email:', err);
+    });
+
+    return user;
+  } catch (e) {
+    if (e instanceof BadRequestException) throw e;
+    throw new InternalServerErrorException('Unable to create user. Please try again later.');
   }
+}
+
 
   async update(id: string, data: UpdateUserDto) {
     try {
