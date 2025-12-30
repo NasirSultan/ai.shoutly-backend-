@@ -13,10 +13,12 @@ model User {
   id String @id @default(uuid())
   name String
   email String @unique
-  password String
+  password       String?
+  phone             String?  
 
   otp String?
   otpExpiresAt DateTime?
+  refreshToken String?
 
   brandName String?
   brandLogo String?
@@ -27,9 +29,15 @@ model User {
   emailNotification Boolean @default(true)
   pushNotification Boolean @default(false)
   weeklyNotification Boolean @default(true)
-    linkedAccounts LinkedAccount[]
+  linkedAccounts LinkedAccount[]
+  role UserRole @default(USER)
+
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@index([email])
+  @@index([otp])
+  @@index([createdAt])
 
 }
 enum SocialPlatform {
@@ -38,6 +46,17 @@ enum SocialPlatform {
   LINKEDIN
   INSTAGRAM
 }
+enum UserRole {
+  USER
+  SUPERADMIN
+  CONTENTADMIN
+  TECHNICIANADMIN
+  FINANCEADMIN
+}
+
+
+
+
 
 model LinkedAccount {
   id             String   @id @default(uuid())
