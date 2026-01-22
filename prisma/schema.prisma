@@ -15,6 +15,7 @@ model User {
   email String @unique
   password       String?
   phone             String?  
+  logo Logo?
 
   otp String?
   otpExpiresAt DateTime?
@@ -109,4 +110,37 @@ model Image {
   createdAt   DateTime      @default(now())
 
   @@index([subIndustryId])
+}
+
+
+
+
+enum LogoSize {
+  SMALL
+  MEDIUM
+  LARGE
+}
+
+enum LogoPosition {
+  TOP_LEFT
+  TOP_RIGHT
+}
+model Logo {
+  id String @id @default(uuid())
+
+  file String
+  size LogoSize
+  position LogoPosition
+  color String?
+
+  phone String?
+  website String?
+
+  userId String @unique
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }

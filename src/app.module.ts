@@ -8,9 +8,10 @@ import { ImagelayoutModule } from './imagelayout/imagelayout.module';
 import { AuthModule } from './auth/auth.module'
 import { ConfigModule } from '@nestjs/config'
 
-
+import { UserModule } from './users/user.module';
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }),ImagelayoutModule, MetaAccountsModule,IndustriesModule, AuthModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }),ImagelayoutModule, MetaAccountsModule,IndustriesModule, AuthModule, 
+    UserModule],
   controllers: [AppController],
   providers: [AppService],
 })
