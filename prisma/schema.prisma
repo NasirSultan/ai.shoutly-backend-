@@ -96,7 +96,7 @@ model SubIndustry {
   industry    Industry      @relation(fields: [industryId], references: [id], onDelete: Cascade)
   industryId  String
   images      Image[]
-
+  contents   Content[]
   @@index([industryId])
   @@index([name])
 }
@@ -143,4 +143,34 @@ model Logo {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+}
+
+
+model Content {
+  id            String            @id @default(uuid())
+  text          String
+  subIndustry   SubIndustry       @relation(fields: [subIndustryId], references: [id], onDelete: Cascade)
+  subIndustryId String
+  hashtags      ContentHashtag[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([subIndustryId])
+  @@index([createdAt])
+}
+
+model Hashtag {
+  id       String           @id @default(uuid())
+  tag      String           @unique
+  contents ContentHashtag[]
+}
+
+model ContentHashtag {
+  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  contentId String
+  hashtag   Hashtag  @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
+  hashtagId String
+
+  @@id([contentId, hashtagId])
+  @@index([hashtagId])
 }

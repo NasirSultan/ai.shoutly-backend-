@@ -3,13 +3,18 @@ import { IndustriesService } from './industries.service'
 
 @Controller('industries')
 export class IndustriesController {
-  constructor(private readonly industriesService: IndustriesService) {}
+  constructor(private readonly industriesService: IndustriesService) { }
 
   @Post()
   create(@Body('name') name: string) {
     return this.industriesService.createIndustry(name)
   }
 
+  @Get('clear-cache')
+  clearCache() {
+    return this.industriesService.clearIndustriesCache()
+  }
+  
   @Get()
   findAll() {
     return this.industriesService.getAllIndustries()
@@ -29,4 +34,6 @@ export class IndustriesController {
   remove(@Param('id') id: string) {
     return this.industriesService.deleteIndustry(id)
   }
+
+
 }

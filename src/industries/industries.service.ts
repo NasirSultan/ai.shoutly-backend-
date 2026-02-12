@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaClient } from '@prisma/client'
 import { RedisService } from '../common/redis/redis.service'
+import { promisify } from 'util'
+import * as zlib from 'zlib'
+
+const gzip = promisify(zlib.gzip)
+const gunzip = promisify(zlib.gunzip)
 @Injectable()
 export class IndustriesService {
   private prisma = new PrismaClient()
@@ -18,8 +23,9 @@ async getAllIndustries() {
 
   const cachedData = await client.get(cacheKey)
   if (cachedData) {
-    console.log('Data fetched from Redis')
-    return JSON.parse(cachedData)
+    const decompressed = await gunzip(Buffer.from(cachedData, 'base64'))
+    console.log('Data fetched from Redis (compressed)')
+    return JSON.parse(decompressed.toString())
   }
 
   const industries = await this.prisma.industry.findMany({
@@ -42,8 +48,9 @@ async getAllIndustries() {
     },
   })
 
-  console.log('Data fetched from Database')
-  await client.set(cacheKey, JSON.stringify(industries))
+  const compressed = await gzip(JSON.stringify(industries))
+  await client.set(cacheKey, compressed.toString('base64'))
+  console.log('Data fetched from Database and cached (compressed)')
 
   return industries
 }
@@ -69,4 +76,17 @@ async getAllIndustries() {
   async deleteIndustry(id: string) {
     return this.prisma.industry.delete({ where: { id } })
   }
+
+async clearIndustriesCache() {
+  const client = this.redisService.getClient()
+  const cacheKey = 'all_industries'
+  const exists = await client.exists(cacheKey)
+  if (!exists) {
+    return { message: 'No cache found to clear' }
+  }
+  await client.del(cacheKey)
+  return { message: 'Industries cache cleared successfully' }
+}
+
+
 }

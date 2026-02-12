@@ -7,11 +7,14 @@ import { SubindustriesService } from './subindustries/subindustries.service'
 import { ImagesController } from './images/images.controller'
 import { ImagesService } from './images/images.service'
 import { RedisModule } from '../common/redis/redis.module'
+import { ContentModule } from './subindustries/content/content.module';
+
 @Module({
   imports: [
     MulterModule.register({
       limits: { fileSize: 5 * 1024 * 1024 }, // optional limit 5MB
-    }),RedisModule
+    }),RedisModule,
+    ContentModule
   ],
   controllers: [IndustriesController, SubindustriesController, ImagesController],
   providers: [IndustriesService, SubindustriesService, ImagesService],
