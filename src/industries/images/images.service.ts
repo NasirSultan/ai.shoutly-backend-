@@ -18,6 +18,40 @@ type ImgbbUploadResult = {
 @Injectable()
 export class ImagesService {
 
+//    // for testing only
+//    async uploadToImgbb(file: Express.Multer.File): Promise<ImgbbUploadResult> {
+//   console.log('Uploading file:', file.originalname, 'size:', file.size)
+//   console.log('ImgBB key present:', !!imgbbKey)
+//   const base64 = file.buffer.toString('base64')
+//   console.log('Base64 length:', base64.length)
+
+//   const form = new FormData()
+//   form.append('image', base64)
+
+//   try {
+//     const res = await axios.post(
+//       `https://api.imgbb.com/1/upload?key=${imgbbKey}`,
+//       form,
+//       { headers: form.getHeaders() }
+//     )
+//     console.log('ImgBB response:', res.data)
+//     return {
+//       imageUrl: res.data.data.url,
+//       deleteUrl: res.data.data.delete_url
+//     }
+//   } catch (error: any) {
+//     if (error.response) {
+//       console.error('Axios error status:', error.response.status)
+//       console.error('Axios error data:', error.response.data)
+//     } else {
+//       console.error('Axios error:', error.message)
+//     }
+//     throw error
+//   }
+// }
+
+
+
   async uploadToImgbb(file: Express.Multer.File): Promise<ImgbbUploadResult> {
     const form = new FormData()
     form.append('image', file.buffer.toString('base64'))

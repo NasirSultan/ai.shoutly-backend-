@@ -89,4 +89,35 @@ async clearIndustriesCache() {
 }
 
 
+async getIndustriesWithSubIndustries() {
+  const industries = await this.prisma.industry.findMany({
+    select: {
+      id: true,
+      name: true,
+      subIndustries: {
+        select: {
+          id: true,
+          name: true,
+          _count: {
+            select: {
+              contents: true
+            }
+          }
+        }
+      }
+    }
+  })
+
+  return industries.map(ind => ({
+    id: ind.id,
+    name: ind.name,
+    subIndustries: ind.subIndustries.map(sub => ({
+      id: sub.id,
+      name: sub.name,
+      totalItems: sub._count.contents
+    }))
+  }))
+}
+
+
 }

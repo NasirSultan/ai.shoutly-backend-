@@ -22,6 +22,8 @@ export class ImagesController {
       limits: { fileSize: 50 * 1024 * 1024 }
     })
   )
+
+  
   async uploadMultiple(
     @Param('subIndustryId') subIndustryId: string,
     @Query('text') text: string,

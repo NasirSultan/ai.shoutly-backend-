@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Param, Body } from '@nestjs/common'
+import { Controller, Get, Post, Put,Query, Delete, Param, Body } from '@nestjs/common'
 import { IndustriesService } from './industries.service'
 
 @Controller('industries')
@@ -14,7 +14,12 @@ export class IndustriesController {
   clearCache() {
     return this.industriesService.clearIndustriesCache()
   }
-  
+
+  @Get('content')
+getAllIndustriesWithCounts() {
+  return this.industriesService.getIndustriesWithSubIndustries()
+}
+
   @Get()
   findAll() {
     return this.industriesService.getAllIndustries()
@@ -34,6 +39,7 @@ export class IndustriesController {
   remove(@Param('id') id: string) {
     return this.industriesService.deleteIndustry(id)
   }
+
 
 
 }

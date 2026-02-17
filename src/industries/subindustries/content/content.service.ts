@@ -84,7 +84,28 @@ async getContentsBySubIndustry(subIndustryId: string) {
   };
 }
 
+ async deleteContentsBySubIndustry(subIndustryId: string) {
+    return this.prisma.$transaction(async (tx) => {
+      const contents = await tx.content.findMany({
+        where: { subIndustryId },
+        select: { id: true },
+      });
 
+      const contentIds = contents.map(c => c.id);
+
+      if (contentIds.length) {
+        await tx.contentHashtag.deleteMany({
+          where: { contentId: { in: contentIds } },
+        });
+
+        await tx.content.deleteMany({
+          where: { id: { in: contentIds } },
+        });
+      }
+
+      return { deletedCount: contentIds.length };
+    });
+  }
 
 
 }
