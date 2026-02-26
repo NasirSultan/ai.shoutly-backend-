@@ -24,7 +24,10 @@ getAllIndustriesWithCounts() {
   findAll() {
     return this.industriesService.getAllIndustries()
   }
-
+@Get('with-subindustries')
+getIndustriesWithSubOnly() {
+  return this.industriesService.getIndustriesWithSubOnly()
+}
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.industriesService.getIndustryById(id)

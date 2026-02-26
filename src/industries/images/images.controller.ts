@@ -14,7 +14,7 @@ import { Express } from 'express'
 
 @Controller('subindustries/:subIndustryId/images')
 export class ImagesController {
-  constructor(private readonly imagesService: ImagesService) {}
+  constructor(private readonly imagesService: ImagesService) { }
 
   @Post('multiple')
   @UseInterceptors(
@@ -23,7 +23,7 @@ export class ImagesController {
     })
   )
 
-  
+
   async uploadMultiple(
     @Param('subIndustryId') subIndustryId: string,
     @Query('text') text: string,
@@ -52,6 +52,14 @@ export class ImagesController {
     return this.imagesService.findGroupedByText(subIndustryId)
   }
 
+
+  @Get('/random')
+  async getRandomImages(
+    @Query('industryId') industryId?: string
+  ) {
+    return this.imagesService.getRandomImages(industryId)
+  }
+  
   @Delete()
   async deleteImages(
     @Param('subIndustryId') subIndustryId: string,

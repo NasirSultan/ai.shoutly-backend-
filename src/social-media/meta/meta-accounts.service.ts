@@ -16,7 +16,7 @@ interface FacebookUserResponse {
 
 @Injectable()
 export class MetaAccountsService {
-  constructor(private readonly prisma: PrismaClient) {}
+  private prisma = new PrismaClient()
 
   async listAccounts(userId: string) {
     return this.prisma.linkedAccount.findMany({

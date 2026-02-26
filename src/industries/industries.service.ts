@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable,InternalServerErrorException } from '@nestjs/common'
 import { PrismaClient } from '@prisma/client'
 import { RedisService } from '../common/redis/redis.service'
 import { promisify } from 'util'
@@ -118,6 +118,30 @@ async getIndustriesWithSubIndustries() {
     }))
   }))
 }
+
+
+
+async getIndustriesWithSubOnly() {
+  try {
+    const industries = await this.prisma.industry.findMany({
+      select: {
+        id: true,
+        name: true,
+        subIndustries: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      }
+    })
+
+    return industries ?? []
+  } catch (error) {
+    throw new InternalServerErrorException('Unable to fetch industries')
+  }
+}
+
 
 
 }

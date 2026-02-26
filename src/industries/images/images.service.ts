@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable,InternalServerErrorException,BadRequestException  } from '@nestjs/common'
 import { PrismaClient } from '@prisma/client'
 import axios from 'axios'
 import FormData from 'form-data'
 import * as dotenv from 'dotenv'
 import { Express } from 'express'
-
+import { RedisService } from '../../common/redis/redis.service'
+import { createHash } from 'crypto'
 dotenv.config()
 
 const prisma = new PrismaClient()
@@ -17,7 +18,7 @@ type ImgbbUploadResult = {
 
 @Injectable()
 export class ImagesService {
-
+  constructor(private redisService: RedisService) {}
 //    // for testing only
 //    async uploadToImgbb(file: Express.Multer.File): Promise<ImgbbUploadResult> {
 //   console.log('Uploading file:', file.originalname, 'size:', file.size)
@@ -169,4 +170,83 @@ export class ImagesService {
       }
     })
   }
+
+  async getRandomImages(industryId?: string) {
+  try {
+    if (industryId) {
+      if (industryId.length < 10) {
+        throw new BadRequestException('Invalid industryId')
+      }
+
+      const images = await prisma.$queryRawUnsafe(`
+        SELECT i.id, i.file, i."subIndustryId"
+        FROM "Image" i
+        JOIN "SubIndustry" s ON i."subIndustryId" = s."id"
+        WHERE s."industryId" = '${industryId}'
+        ORDER BY RANDOM()
+        LIMIT 15
+      `)
+
+      return images
+    }
+
+    const images = await prisma.$queryRawUnsafe(`
+      SELECT id, file, "subIndustryId"
+      FROM "Image"
+      ORDER BY RANDOM()
+      LIMIT 15
+    `)
+
+    return images
+  } catch (error) {
+    if (error instanceof BadRequestException) {
+      throw error
+    }
+
+    throw new InternalServerErrorException('Failed to fetch random images')
+  }
+}
+
+  async getIndustriesAndRandomImages(industryId?: string) {
+    const redis = this.redisService.getClient()
+    const cacheKey = 'industryInfo'
+    const cacheTTL = 3600
+
+    let industries: { id: string; name: string }[] = []
+    let cached = await redis.get(cacheKey)
+    if (cached) {
+      industries = JSON.parse(cached)
+    } else {
+      industries = await prisma.industry.findMany({ select: { id: true, name: true } })
+      await redis.set(cacheKey, JSON.stringify(industries), { EX: cacheTTL })
+    }
+
+    const industriesETag = createHash('md5').update(JSON.stringify(industries)).digest('hex')
+
+    let images: { id: string; file: string; subIndustryId: string }[] = []
+
+    if (industryId) {
+      const validIndustry = industries.find(ind => ind.id === industryId)
+      if (!validIndustry) throw new BadRequestException('Invalid industryId')
+
+      images = await prisma.$queryRaw`
+        SELECT i.id, i.file, i."subIndustryId"
+        FROM "Image" i
+        JOIN "SubIndustry" s ON i."subIndustryId" = s.id
+        WHERE s."industryId" = ${industryId}
+        ORDER BY RANDOM()
+        LIMIT 15
+      `
+    } else {
+      images = await prisma.$queryRaw`
+        SELECT id, file, "subIndustryId"
+        FROM "Image"
+        ORDER BY RANDOM()
+        LIMIT 15
+      `
+    }
+
+    return { industries, industriesETag, images }
+  }
+
 }

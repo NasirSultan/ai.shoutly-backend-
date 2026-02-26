@@ -5,6 +5,7 @@ import { IndustriesController } from './industries.controller'
 import { SubindustriesController } from './subindustries/subindustries.controller'
 import { SubindustriesService } from './subindustries/subindustries.service'
 import { ImagesController } from './images/images.controller'
+import { DisplayImagesController } from './images/display-images.controller'
 import { ImagesService } from './images/images.service'
 import { RedisModule } from '../common/redis/redis.module'
 import { ContentModule } from './subindustries/content/content.module';
@@ -16,7 +17,7 @@ import { ContentModule } from './subindustries/content/content.module';
     }),RedisModule,
     ContentModule
   ],
-  controllers: [IndustriesController, SubindustriesController, ImagesController],
+  controllers: [IndustriesController, SubindustriesController, ImagesController,DisplayImagesController],
   providers: [IndustriesService, SubindustriesService, ImagesService],
 })
 export class IndustriesModule {}
