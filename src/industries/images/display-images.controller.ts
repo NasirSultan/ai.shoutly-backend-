@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Headers, Res, BadRequestException, InternalServerErrorException } from '@nestjs/common'
+import { Controller, Get, Query, Headers,Param, Res,Delete, BadRequestException, InternalServerErrorException } from '@nestjs/common'
 import { Response } from 'express'
 import { ImagesService } from './images.service'
 
@@ -24,5 +24,12 @@ export class DisplayImagesController {
       if (error instanceof BadRequestException) throw error
       throw new InternalServerErrorException('Failed to fetch industries and images')
     }
+  }
+
+
+    @Delete(':id')
+  async deleteImage(@Param('id') id: string) {
+    if (!id) throw new BadRequestException('ImageId is required')
+    return this.imagesService.deleteImageById(id)
   }
 }

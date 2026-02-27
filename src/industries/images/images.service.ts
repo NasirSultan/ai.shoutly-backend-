@@ -1,4 +1,4 @@
-import { Injectable,InternalServerErrorException,BadRequestException  } from '@nestjs/common'
+import { Injectable,InternalServerErrorException,NotFoundException,BadRequestException  } from '@nestjs/common'
 import { PrismaClient } from '@prisma/client'
 import axios from 'axios'
 import FormData from 'form-data'
@@ -19,55 +19,55 @@ type ImgbbUploadResult = {
 @Injectable()
 export class ImagesService {
   constructor(private redisService: RedisService) {}
-//    // for testing only
-//    async uploadToImgbb(file: Express.Multer.File): Promise<ImgbbUploadResult> {
-//   console.log('Uploading file:', file.originalname, 'size:', file.size)
-//   console.log('ImgBB key present:', !!imgbbKey)
-//   const base64 = file.buffer.toString('base64')
-//   console.log('Base64 length:', base64.length)
+   // for testing only
+   async uploadToImgbb(file: Express.Multer.File): Promise<ImgbbUploadResult> {
+  console.log('Uploading file:', file.originalname, 'size:', file.size)
+  console.log('ImgBB key present:', !!imgbbKey)
+  const base64 = file.buffer.toString('base64')
+  console.log('Base64 length:', base64.length)
 
-//   const form = new FormData()
-//   form.append('image', base64)
+  const form = new FormData()
+  form.append('image', base64)
 
-//   try {
-//     const res = await axios.post(
-//       `https://api.imgbb.com/1/upload?key=${imgbbKey}`,
-//       form,
-//       { headers: form.getHeaders() }
-//     )
-//     console.log('ImgBB response:', res.data)
-//     return {
-//       imageUrl: res.data.data.url,
-//       deleteUrl: res.data.data.delete_url
-//     }
-//   } catch (error: any) {
-//     if (error.response) {
-//       console.error('Axios error status:', error.response.status)
-//       console.error('Axios error data:', error.response.data)
-//     } else {
-//       console.error('Axios error:', error.message)
-//     }
-//     throw error
-//   }
-// }
-
-
-
-  async uploadToImgbb(file: Express.Multer.File): Promise<ImgbbUploadResult> {
-    const form = new FormData()
-    form.append('image', file.buffer.toString('base64'))
-
+  try {
     const res = await axios.post(
       `https://api.imgbb.com/1/upload?key=${imgbbKey}`,
       form,
       { headers: form.getHeaders() }
     )
-
+    console.log('ImgBB response:', res.data)
     return {
       imageUrl: res.data.data.url,
       deleteUrl: res.data.data.delete_url
     }
+  } catch (error: any) {
+    if (error.response) {
+      console.error('Axios error status:', error.response.status)
+      console.error('Axios error data:', error.response.data)
+    } else {
+      console.error('Axios error:', error.message)
+    }
+    throw error
   }
+}
+
+
+
+  // async uploadToImgbb(file: Express.Multer.File): Promise<ImgbbUploadResult> {
+  //   const form = new FormData()
+  //   form.append('image', file.buffer.toString('base64'))
+
+  //   const res = await axios.post(
+  //     `https://api.imgbb.com/1/upload?key=${imgbbKey}`,
+  //     form,
+  //     { headers: form.getHeaders() }
+  //   )
+
+  //   return {
+  //     imageUrl: res.data.data.url,
+  //     deleteUrl: res.data.data.delete_url
+  //   }
+  // }
 
   async uploadMultipleToImgbb(
     files: Express.Multer.File[]
@@ -247,6 +247,28 @@ export class ImagesService {
     }
 
     return { industries, industriesETag, images }
+  }
+
+
+
+ async deleteImageById(imageId: string) {
+    const image = await prisma.image.findUnique({ where: { id: imageId } })
+    if (!image) throw new NotFoundException('Image not found')
+
+    if (image.deleteUrl) {
+      try {
+        await axios.get(image.deleteUrl)
+      } catch (error) {
+        console.error('Failed to delete image from ImgBB:', error.message)
+      }
+    }
+
+    try {
+      await prisma.image.delete({ where: { id: imageId } })
+      return { success: true, message: 'Image deleted successfully' }
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to delete image from database')
+    }
   }
 
 }

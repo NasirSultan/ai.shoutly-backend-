@@ -7,11 +7,11 @@ import { IndustriesModule } from './industries/industries.module'
 import { ImagelayoutModule } from './imagelayout/imagelayout.module';
 import { AuthModule } from './auth/auth.module'
 import { ConfigModule } from '@nestjs/config'
-
+import { BrevoModule } from './brevo/brevo.module';
 import { UserModule } from './users/user.module';
 @Module({
   imports: [ConfigModule.forRoot({ isGlobal: true }),ImagelayoutModule, MetaAccountsModule,IndustriesModule, AuthModule, 
-    UserModule],
+    UserModule, BrevoModule],
   controllers: [AppController],
   providers: [AppService],
 })

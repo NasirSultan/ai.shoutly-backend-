@@ -105,6 +105,7 @@ model Image {
   id          String        @id @default(uuid())
   file        String
   text          Boolean       @default(false)
+  deleteUrl String  @default("") 
   subIndustry SubIndustry   @relation(fields: [subIndustryId], references: [id], onDelete: Cascade)
   subIndustryId String
   createdAt   DateTime      @default(now())

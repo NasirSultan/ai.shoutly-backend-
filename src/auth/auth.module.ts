@@ -4,14 +4,15 @@ import { AuthController } from './auth.controller'
 import { PrismaModule } from '../lib/prisma.module'
 import { JwtLibModule } from '../lib/jwt/jwt.module'
 import { RedisModule } from '../common/redis/redis.module'
-
-
+import { BrevoModule } from 'src/brevo/brevo.module'
+import { ImgbbService } from '../lib/imgbb/imgbb.service'
 @Module({
   imports: [PrismaModule,
     JwtLibModule,
-    RedisModule
+    RedisModule,
+    BrevoModule
   ],
-  providers: [AuthService],
+  providers: [AuthService, ImgbbService],
   controllers: [AuthController],
 })
 export class AuthModule {}

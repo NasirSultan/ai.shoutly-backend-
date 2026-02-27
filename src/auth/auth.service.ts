@@ -6,11 +6,13 @@ import { UserRole } from './dto/register.dto'
 import { JwtService } from '@nestjs/jwt'
 import { JwtLibService } from 'src/lib/jwt/jwt.service'
 import { RedisService } from '../common/redis/redis.service'
+import { BrevoService } from 'src/brevo/brevo.service'
 @Injectable()
 export class AuthService {
   constructor(private prisma: PrismaService,
   private jwtService: JwtLibService,
-      private redisService: RedisService
+      private redisService: RedisService,
+        private brevoService: BrevoService
 
   ) {}
 
@@ -23,16 +25,18 @@ async register(name: string, email: string, role?: UserRole) {
     const otpExpiresAt = addMinutesToDate(new Date(), 10)
 
     const user = await this.prisma.user.create({
-      data: { 
-        name, 
-        email, 
-        otp, 
-        otpExpiresAt, 
-        role: role || UserRole.USER 
-      },
+      data: {
+        name,
+        email,
+        otp,
+        otpExpiresAt,
+        role: role || UserRole.USER
+      }
     })
 
-    return { email: user.email, otp }
+    await this.brevoService.sendOtpEmail(user.email, user.name, otp)
+
+    return { message: 'OTP sent to email', email: user.email }
   } catch (error) {
     throw new InternalServerErrorException('Failed to register user')
   }
