@@ -1,3 +1,4 @@
+import { ReelsModule } from './subindustries/reels/reels.module';
 import { Module } from '@nestjs/common'
 import { MulterModule } from '@nestjs/platform-express'
 import { IndustriesService } from './industries.service'
@@ -14,7 +15,7 @@ import { ContentModule } from './subindustries/content/content.module';
   imports: [
     MulterModule.register({
       limits: { fileSize: 5 * 1024 * 1024 }, // optional limit 5MB
-    }),RedisModule,
+    }),RedisModule, ReelsModule,
     ContentModule
   ],
   controllers: [IndustriesController, SubindustriesController, ImagesController,DisplayImagesController],

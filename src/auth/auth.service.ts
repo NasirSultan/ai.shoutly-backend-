@@ -91,7 +91,7 @@ async updateProfile(email: string, profileData: any) {
 
     const updated = await this.prisma.user.update({
       where: { email },
-      data: updateData,
+      data: updateData
     })
 
     return updated

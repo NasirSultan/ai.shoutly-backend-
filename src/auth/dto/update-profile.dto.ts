@@ -10,10 +10,6 @@ export class UpdateProfileDto {
   brandName?: string
 
   @IsOptional()
-  @IsString()
-  brandLogo?: string
-
-  @IsOptional()
   @IsUrl()
   website?: string
 

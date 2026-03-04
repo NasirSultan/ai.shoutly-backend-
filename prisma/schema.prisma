@@ -20,7 +20,7 @@ model User {
   otp String?
   otpExpiresAt DateTime?
   refreshToken String?
-
+  calendarPosts CalendarPost[]
   brandName String?
   brandLogo String?
   website String?
@@ -32,7 +32,7 @@ model User {
   weeklyNotification Boolean @default(true)
   linkedAccounts LinkedAccount[]
   role UserRole @default(USER)
-
+  subscriptions Subscription[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -96,7 +96,10 @@ model SubIndustry {
   industry    Industry      @relation(fields: [industryId], references: [id], onDelete: Cascade)
   industryId  String
   images      Image[]
+   reels       Reel[] 
   contents   Content[]
+  
+    calendarPosts CalendarPost[]
   @@index([industryId])
   @@index([name])
 }
@@ -108,6 +111,7 @@ model Image {
   deleteUrl String  @default("") 
   subIndustry SubIndustry   @relation(fields: [subIndustryId], references: [id], onDelete: Cascade)
   subIndustryId String
+    calendarPosts CalendarPost[]
   createdAt   DateTime      @default(now())
 
   @@index([subIndustryId])
@@ -155,7 +159,7 @@ model Content {
   hashtags      ContentHashtag[]
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
-
+  calendarPosts CalendarPost[]
   @@index([subIndustryId])
   @@index([createdAt])
 }
@@ -174,4 +178,83 @@ model ContentHashtag {
 
   @@id([contentId, hashtagId])
   @@index([hashtagId])
+}
+
+
+model Reel {
+  id            String       @id @default(uuid())
+  file          String
+  subIndustry   SubIndustry  @relation(fields: [subIndustryId], references: [id], onDelete: Cascade)
+  subIndustryId String
+  createdAt     DateTime     @default(now())
+  calendarPosts CalendarPost[]
+  @@index([subIndustryId])
+}
+
+enum Plan {
+  STARTER
+  GROWTH
+}
+
+enum Billing {
+  MONTHLY
+  YEARLY
+}
+
+model Subscription {
+  id        String    @id @default(uuid())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  plan      Plan?     
+  billing   Billing?  
+  isTrial   Boolean   @default(false)
+  startedAt DateTime  @default(now())
+  expiresAt DateTime?
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+
+
+model CalendarPost {
+  id             String       @id @default(uuid())
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  subIndustryId  String
+  subIndustry    SubIndustry  @relation(fields: [subIndustryId], references: [id], onDelete: Cascade)
+  
+  contentId      String?      
+  content        Content?     @relation(fields: [contentId], references: [id], onDelete: SetNull)
+  
+  reelId         String?      
+  reel           Reel?        @relation(fields: [reelId], references: [id], onDelete: SetNull)
+  
+  imageId        String?      
+  image          Image?       @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  
+  type           PostType
+  postTime       DateTime
+  status         PostStatus   @default(SCHEDULED)
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([userId])
+  @@index([subIndustryId])
+  @@index([postTime])
+}
+
+enum PostType {
+  REEL
+  IMAGE
+}
+
+enum PostStatus {
+  SCHEDULED
+  SKIP
+  POSTED
 }

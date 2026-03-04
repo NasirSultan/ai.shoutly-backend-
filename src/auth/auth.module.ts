@@ -14,5 +14,6 @@ import { ImgbbService } from '../lib/imgbb/imgbb.service'
   ],
   providers: [AuthService, ImgbbService],
   controllers: [AuthController],
+    exports: [JwtLibModule] 
 })
 export class AuthModule {}

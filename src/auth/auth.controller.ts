@@ -1,16 +1,21 @@
-import { Controller, Post, Body } from '@nestjs/common'
+import { Controller, Post, Body ,UploadedFile, UseInterceptors } from '@nestjs/common'
 import { AuthService } from './auth.service'
+import { FileInterceptor } from '@nestjs/platform-express'
 import { RegisterDto } from './dto/register.dto'
 import { VerifyOtpDto } from './dto/verify-otp.dto'
 import { SetPasswordDto } from './dto/set-password.dto'
 import { UpdateProfileDto } from './dto/update-profile.dto'
 import { LoginDto } from './dto/login.dto'
 import { RefreshTokenDto } from './dto/refresh-token.dto'
-
+import { Express } from 'express'
+import { ImgbbService } from '../lib/imgbb/imgbb.service'
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+      private authService: AuthService ,
+      private readonly imgbbService: ImgbbService
+  ) {}
 
 @Post('register')
 async register(@Body() dto: RegisterDto) {
@@ -28,10 +33,24 @@ async register(@Body() dto: RegisterDto) {
     return this.authService.setPassword(dto.email, dto.password)
   }
 
-@Post('update-profile')
-async updateProfile(@Body() dto: UpdateProfileDto) {
-  return this.authService.updateProfile(dto.email, dto)
-}
+ @Post('set-profile')
+  @UseInterceptors(FileInterceptor('brandLogo'))
+  async updateProfile(
+    @Body() dto: UpdateProfileDto,
+    @UploadedFile() file?: Express.Multer.File
+  ) {
+    let brandLogoUrl: string | undefined
+
+    if (file) {
+      const uploaded = await this.imgbbService.uploadBrandLogo(file)
+      brandLogoUrl = uploaded
+    }
+
+    return this.authService.updateProfile(dto.email, {
+      ...dto,
+      brandLogo: brandLogoUrl
+    })
+  }
 
 @Post('login')
 async login(@Body() dto: LoginDto) {

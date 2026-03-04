@@ -19,7 +19,7 @@ type ImgbbUploadResult = {
 @Injectable()
 export class ImagesService {
   constructor(private redisService: RedisService) {}
-   // for testing only
+  // for testing only
    async uploadToImgbb(file: Express.Multer.File): Promise<ImgbbUploadResult> {
   console.log('Uploading file:', file.originalname, 'size:', file.size)
   console.log('ImgBB key present:', !!imgbbKey)
@@ -88,31 +88,33 @@ export class ImagesService {
     }
   }
 
-  async createMultipleSafe(
-    files: Express.Multer.File[],
-    subIndustryId: string,
-    text: boolean
-  ) {
-    const uploaded = await this.uploadMultipleToImgbb(files)
+async createMultipleSafe(
+  files: Express.Multer.File[],
+  subIndustryId: string,
+  text: boolean
+) {
+  const uploaded = await this.uploadMultipleToImgbb(files)
 
-    const data = uploaded.map(item => ({
-      file: item.imageUrl,
-      subIndustryId,
-      text
-    }))
+  const data = uploaded.map(item => ({
+    file: item.imageUrl,
+    deleteUrl: item.deleteUrl,
+    subIndustryId,
+    text
+  }))
 
-    try {
-      await prisma.image.createMany({ data })
-      return {
-        success: true,
-        total: data.length
-      }
-    } catch {
-      const deleteUrls = uploaded.map(item => item.deleteUrl)
-      await this.deleteFromImgbb(deleteUrls)
-      throw new Error('Database failed. Images rolled back.')
+  try {
+    await prisma.image.createMany({ data })
+    return {
+      success: true,
+      total: data.length,
+      images: data
     }
+  } catch {
+    const deleteUrls = uploaded.map(item => item.deleteUrl)
+    await this.deleteFromImgbb(deleteUrls)
+    throw new Error('Database failed. Images rolled back.')
   }
+}
 
   async findAll(subIndustryId: string) {
     return prisma.image.findMany({
@@ -162,14 +164,38 @@ export class ImagesService {
     }
   }
 
-  async deleteBySubIndustryAndText(subIndustryId: string, text: boolean) {
-    return prisma.image.deleteMany({
-      where: {
-        subIndustryId,
-        text
-      }
-    })
+async deleteBySubIndustryAndText(subIndustryId: string, text: boolean) {
+  const images = await prisma.image.findMany({
+    where: { subIndustryId, text },
+    select: { id: true, deleteUrl: true }
+  })
+
+  if (images.length === 0) {
+    return {
+      success: false,
+      message: `No images found for subIndustryId '${subIndustryId}' with text=${text}`
+    }
   }
+
+  const deleteUrls = images
+    .map(img => img.deleteUrl)
+    .filter(url => !!url)
+
+  if (deleteUrls.length > 0) {
+    await this.deleteFromImgbb(deleteUrls)
+  }
+
+  const deleted = await prisma.image.deleteMany({
+    where: { subIndustryId, text }
+  })
+
+  return {
+    success: true,
+    message: `Deleted ${deleted.count} image(s) from database and ${deleteUrls.length} image(s) from ImgBB.`,
+    deletedCount: deleted.count,
+    deletedFromImgBB: deleteUrls.length
+  }
+}
 
   async getRandomImages(industryId?: string) {
   try {

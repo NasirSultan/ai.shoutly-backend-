@@ -4,7 +4,7 @@ import FormData from 'form-data'
 import { Express } from 'express'
 @Injectable()
 export class ImgbbService {
-  private readonly imgbbKey = process.env.IMGBB_API_KEY
+  private readonly imgbbKey = process.env.IMGBB_KEY
 
   async uploadFile(file: Express.Multer.File): Promise<{ imageUrl: string; deleteUrl: string }> {
     if (!this.imgbbKey) throw new InternalServerErrorException('ImgBB API key not set')
