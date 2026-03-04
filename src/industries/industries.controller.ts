@@ -19,7 +19,10 @@ export class IndustriesController {
 getAllIndustriesWithCounts() {
   return this.industriesService.getIndustriesWithSubIndustries()
 }
-
+@Get(':id/subindustries/reels')
+async getSubIndustriesWithReels(@Param('id') industryId: string) {
+  return this.industriesService.getSubIndustriesWithReelsByIndustry(industryId)
+}
   @Get()
   findAll() {
     return this.industriesService.getAllIndustries()

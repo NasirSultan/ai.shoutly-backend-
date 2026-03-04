@@ -142,6 +142,45 @@ async getIndustriesWithSubOnly() {
   }
 }
 
+async getSubIndustriesWithReelsByIndustry(industryId: string) {
+  const industry = await this.prisma.industry.findUnique({
+    where: { id: industryId },
+    select: {
+      id: true,
+      name: true,
+      subIndustries: {
+        select: {
+          id: true,
+          name: true,
+          reels: {
+            select: {
+              id: true,
+              file: true
+            },
+            orderBy: { createdAt: 'desc' }
+          },
+          _count: {
+            select: { reels: true }
+          }
+        }
+      }
+    }
+  })
 
+  if (!industry) {
+    throw new Error('Industry not found')
+  }
+
+  return {
+    id: industry.id,
+    name: industry.name,
+    subIndustries: industry.subIndustries.map(sub => ({
+      id: sub.id,
+      name: sub.name,
+      totalReels: sub._count.reels,
+      reels: sub.reels
+    }))
+  }
+}
 
 }
