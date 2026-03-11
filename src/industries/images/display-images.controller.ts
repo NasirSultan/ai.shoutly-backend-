@@ -6,23 +6,14 @@ import { ImagesService } from './images.service'
 export class DisplayImagesController {
   constructor(private readonly imagesService: ImagesService) {}
 
-  @Get()
-  async getIndustriesWithImages(
-    @Query('industryId') industryId?: string,
-    @Headers('if-none-match') ifNoneMatch?: string,
-    @Res() res?: Response
-  ) {
+ @Get()
+  async getImagesBySubIndustry(@Query('subIndustryId') subIndustryId?: string) {
     try {
-      const result = await this.imagesService.getIndustriesAndRandomImages(industryId)
-      const etag = result.industriesETag
-
-      if (ifNoneMatch && ifNoneMatch === etag) return res.status(304).send()
-
-      res.setHeader('ETag', etag)
-      return res.json({ industries: result.industries, images: result.images })
+      const images = await this.imagesService.getImagesBySubIndustry(subIndustryId)
+      return { images }
     } catch (error) {
       if (error instanceof BadRequestException) throw error
-      throw new InternalServerErrorException('Failed to fetch industries and images')
+      throw new InternalServerErrorException('Failed to fetch images')
     }
   }
 

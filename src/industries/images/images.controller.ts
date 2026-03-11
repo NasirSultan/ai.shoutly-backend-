@@ -53,12 +53,7 @@ export class ImagesController {
   }
 
 
-  @Get('/random')
-  async getRandomImages(
-    @Query('industryId') industryId?: string
-  ) {
-    return this.imagesService.getRandomImages(industryId)
-  }
+
   
   @Delete()
   async deleteImages(
