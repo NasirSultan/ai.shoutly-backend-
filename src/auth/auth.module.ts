@@ -6,11 +6,14 @@ import { JwtLibModule } from '../lib/jwt/jwt.module'
 import { RedisModule } from '../common/redis/redis.module'
 import { BrevoModule } from 'src/brevo/brevo.module'
 import { ImgbbService } from '../lib/imgbb/imgbb.service'
+import { GoogleModule } from './google/google.module'
+
 @Module({
   imports: [PrismaModule,
     JwtLibModule,
     RedisModule,
-    BrevoModule
+    BrevoModule,
+    GoogleModule
   ],
   providers: [AuthService, ImgbbService],
   controllers: [AuthController],

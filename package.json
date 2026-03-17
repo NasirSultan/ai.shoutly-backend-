@@ -39,6 +39,7 @@
     "class-validator": "^0.14.3",
     "date-fns": "^4.1.0",
     "express": "^5.2.1",
+    "google-auth-library": "^10.6.2",
     "imagekit": "^6.0.0",
     "imagekit-javascript": "^4.0.1",
     "ioredis": "^5.8.2",
