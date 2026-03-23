@@ -177,20 +177,22 @@ async refreshToken(token: string) {
   return { accessToken, refreshToken }
 }
 
- async sendOtp(email: string) {
-    const user = await this.prisma.user.findUnique({ where: { email } })
-    if (!user) throw new NotFoundException('User not found')
+async sendOtp(email: string) {
+  const user = await this.prisma.user.findUnique({ where: { email } })
+  if (!user) throw new NotFoundException('User not found')
 
-    const otp = generateOtp()
-    const otpExpiresAt = addMinutesToDate(new Date(), 10)
+  const otp = generateOtp()
+  const otpExpiresAt = addMinutesToDate(new Date(), 10)
 
-    await this.prisma.user.update({
-      where: { email },
-      data: { otp, otpExpiresAt }
-    })
+  await this.prisma.user.update({
+    where: { email },
+    data: { otp, otpExpiresAt }
+  })
 
-    return { message: 'OTP sent successfully', otp }
-  }
+  await this.brevoService.sendOtpEmail(user.email, user.name, otp)
+
+  return { message: 'OTP sent successfully' }
+}
 
   async verifyOtpForReset(email: string, otp: string) {
     const user = await this.prisma.user.findUnique({ where: { email } })

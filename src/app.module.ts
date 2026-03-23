@@ -11,6 +11,7 @@ import { ConfigModule } from '@nestjs/config'
 import { BrevoModule } from './brevo/brevo.module';
 import { JwtModule } from '@nestjs/jwt';
 import { UserModule } from './users/user.module';
+import { GeminiImageModule } from "./geminiimage/geminiimage.module";
 @Module({
   imports: [ConfigModule.forRoot({ isGlobal: true }),ImagelayoutModule, MetaAccountsModule,IndustriesModule, AuthModule, 
     UserModule, BrevoModule,
@@ -19,7 +20,8 @@ import { UserModule } from './users/user.module';
       signOptions: { expiresIn: '8h' },
     }),
   SubscriptionModule,
-  CalendarModule
+  CalendarModule,
+  GeminiImageModule
 
 ],
   controllers: [AppController],
