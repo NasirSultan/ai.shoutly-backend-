@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common'
-import { GeminiImageService } from './geminiimage.service'
-import { GeminiImageController } from './geminiimage.controller'
+import { PostGeneratorService } from './geminiimage.service'
+
+import { PostGeneratorController } from './geminiimage.controller'
 import { GeminiService } from '../lib/llm/geminillm/gemini.service'
 import { ImgbbService } from '../lib/imgbb/imgbb.service'
 
 @Module({
-  providers: [GeminiImageService, GeminiService, ImgbbService],
-  controllers: [GeminiImageController],
-  exports: [GeminiImageService],
+  providers: [PostGeneratorService, GeminiService, ImgbbService],
+  controllers: [PostGeneratorController],
+  exports: [PostGeneratorService],
 })
 export class GeminiImageModule {}

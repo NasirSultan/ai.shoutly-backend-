@@ -14,7 +14,7 @@ export class GeminiService {
   async generateText(prompt: string): Promise<string> {
     try {
       const result = await this.ai.models.generateContent({
-        model: 'gemini-2.0-flash',
+     model: 'gemini-2.5-flash',
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
       });
 
