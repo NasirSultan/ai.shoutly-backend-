@@ -11,20 +11,36 @@ export class GeminiService {
     });
   }
 
-  async generateText(prompt: string): Promise<string> {
+
+
+async generateText(prompt: string, retries = 3, delayMs = 2000): Promise<string> {
+  for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       const result = await this.ai.models.generateContent({
-     model: 'gemini-2.5-flash',
+        model: 'gemini-2.5-flash',
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      });
-
-      return result.text ?? '';
+      })
+      return result.text ?? ''
     } catch (error: any) {
-      const message = this.extractErrorMessage(error);
-      console.error('[GeminiService] generateText failed:', message);
-      throw new InternalServerErrorException(`Gemini Error: ${message}`);
+      const message = this.extractErrorMessage(error)
+      const isOverloaded =
+        message.includes('high demand') ||
+        message.includes('overloaded') ||
+        message.includes('503') ||
+        message.includes('429')
+
+      if (isOverloaded && attempt < retries) {
+        console.warn(`[GeminiService] Attempt ${attempt} failed, retrying in ${delayMs}ms...`)
+        await new Promise((res) => setTimeout(res, delayMs * attempt))
+        continue
+      }
+
+      console.error('[GeminiService] generateText failed:', message)
+      throw new InternalServerErrorException(`Gemini Error: ${message}`)
     }
   }
+  throw new InternalServerErrorException('Gemini Error: Max retries exceeded')
+}
 
 async generateImages(prompt: string): Promise<string[]> {
   try {

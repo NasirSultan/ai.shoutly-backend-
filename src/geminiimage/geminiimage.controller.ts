@@ -10,8 +10,8 @@ export class PostGeneratorController {
 
   @Post('generate')
   async generate(
-    @Body('industryId') industryId: string,
-    @Body('subIndustryId') subIndustryId: string,
+    @Body('industryId') industryId: string | undefined,
+    @Body('subIndustryId') subIndustryId: string | undefined,
     @Body('prompt') prompt: string,
     @Res() res: Response
   ) {
@@ -36,8 +36,8 @@ export class PostGeneratorController {
   @Post('generate-and-save')
   async generateAndSave(
     @Body('userId') userId: string,
-    @Body('industryId') industryId: string,
-    @Body('subIndustryId') subIndustryId: string,
+    @Body('industryId') industryId: string | undefined,
+    @Body('subIndustryId') subIndustryId: string | undefined,
     @Body('prompt') prompt: string,
     @Body('postTime') postTime: string,
     @Res() res: Response
