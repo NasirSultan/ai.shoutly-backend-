@@ -22,3 +22,15 @@ Generate a social media post. Respond ONLY in this exact JSON format, no markdow
   "text": "<engaging post caption, 2-4 sentences>",
   "hashtags": ["hashtag1", "hashtag2", "hashtag3", "hashtag4", "hashtag5"]
 }`
+
+
+// src/lib/prompt/postgenerate/post.prompt.ts
+
+// src/lib/prompt/postgenerate/post.prompt.ts
+
+export const buildUserTextPrompt = (userPrompt: string): string =>
+  `You are a social media content expert.
+User request: ${userPrompt}
+
+Generate a short, engaging text in 2-3 lines based on the user request.
+Respond ONLY with the text, no JSON, no markdown, no extra explanation.`

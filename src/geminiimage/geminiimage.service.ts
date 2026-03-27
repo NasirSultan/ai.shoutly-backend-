@@ -294,7 +294,7 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import { PrismaClient } from '@prisma/client'
 import { GeminiService } from '../lib/llm/geminillm/gemini.service'
 import { ImgbbService } from '../lib/imgbb/imgbb.service'
-import { buildPostImagePrompt, buildPostTextPrompt } from '../lib/prompt/post.prompt'
+import { buildPostImagePrompt,buildUserTextPrompt, buildPostTextPrompt } from '../lib/prompt/post.prompt'
 import { Express } from 'express'
 
 const prisma = new PrismaClient()
@@ -747,4 +747,21 @@ private async resolveBaseData(
   private delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms))
   }
+
+async generateTextStreamed(
+  userPrompt: string,
+  onPost: (event: { index: number; text: string }) => void
+): Promise<void> {
+  const variations = 5
+  for (let i = 0; i < variations; i++) {
+    const prompt = buildUserTextPrompt(`${userPrompt} (variation ${i + 1})`)
+    const text = await this.geminiService.generateText(prompt)
+    onPost({ index: i, text })
+  }
 }
+
+  
+}
+
+
+
