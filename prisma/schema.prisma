@@ -235,7 +235,7 @@ model CalendarPost {
   
   imageId        String?      
   image          Image?       @relation(fields: [imageId], references: [id], onDelete: SetNull)
-  
+  imageUrl       String?      @default("")
   type           PostType
   postTime       DateTime
   status         PostStatus   @default(SCHEDULED)

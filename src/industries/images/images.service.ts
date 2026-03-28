@@ -257,4 +257,25 @@ async deleteBySubIndustryAndText(subIndustryId: string, text: boolean) {
     }
   }
 
+
+async getOneTextImageBySubIndustry(subIndustryId: string) {
+  type ImageType = { id: string; file: string; subIndustryId: string }
+
+  const validSubIndustry = await prisma.subIndustry.findUnique({ where: { id: subIndustryId } })
+  if (!validSubIndustry) throw new BadRequestException('Invalid subIndustryId')
+
+  const images = (await prisma.$queryRaw<ImageType[]>`
+    SELECT id, file, "subIndustryId"
+    FROM "Image"
+    WHERE "subIndustryId" = ${subIndustryId} AND text = true
+    ORDER BY RANDOM()
+    LIMIT 1
+  `) as ImageType[]
+
+  const image = images[0] || null
+  if (!image) throw new NotFoundException('No image with text=true found')
+
+  return image
+}
+  
 }

@@ -47,23 +47,56 @@ async getUserPlan(@Req() req) {
 
 
 @UseGuards(AuthGuard)
-  @Patch('post/:postId')
-  @UseInterceptors(FileInterceptor('image'))
-  async updateCalendarPost(
-    @Req() req,
-    @Param('postId') postId: string,
-    @Body() body: { postTime?: string; status?: string; contentText?: string; reelId?: string },
-    @UploadedFile() file?: Express.Multer.File
-  ) {
-    const userId = req.user.id
-    let imageData
-    if (file) {
-      imageData = await this.imgbbService.uploadFile(file)
-    }
+@Patch('post/:postId')
+@UseInterceptors(FileInterceptor('image'))
+async updateCalendarPost(
+  @Req() req,
+  @Param('postId') postId: string,
+  @Body() body: { postTime?: string; status?: string; contentText?: string; reelId?: string; imageUrl?: string },
+  @UploadedFile() file?: Express.Multer.File
+) {
+  const userId = req.user.id
 
-    return await this.calendarService.updatePost(userId, postId, body, imageData)
+  let imageData
+
+  if (body.imageUrl) {
+    imageData = {
+      imageUrl: body.imageUrl,
+      deleteUrl: ''
+    }
+  } else if (file) {
+    imageData = await this.imgbbService.uploadFile(file)
   }
 
+  return await this.calendarService.updatePost(userId, postId, body, imageData)
+}
 
+@Post('post')
+@UseGuards(AuthGuard)
+@UseInterceptors(FileInterceptor('image'))
+async createPost(
+  @Req() req,
+  @Body() body: { subIndustryId: string; postTime: string; contentText?: string; imageUrl?: string },
+  @UploadedFile() file?: Express.Multer.File
+) {
+  const userId = req.user.id
+
+  let imageData
+
+  if (body.imageUrl) {
+    imageData = {
+      imageUrl: body.imageUrl,
+      deleteUrl: ''
+    }
+  } else if (file) {
+    imageData = await this.imgbbService.uploadFile(file)
+  }
+
+  return await this.calendarService.createPost(
+    userId,
+    body,
+    imageData
+  )
+}
 
 }
