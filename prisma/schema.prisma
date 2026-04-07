@@ -16,7 +16,8 @@ model User {
   password       String?
   phone             String?  
   logo Logo?
-
+  file String?
+  deleteFileUrl String?
   otp String?
   otpExpiresAt DateTime?
   refreshToken String?
@@ -34,13 +35,29 @@ model User {
   role UserRole @default(USER)
   subscriptions Subscription[]
 
+  jobTitle String?
+
+  industryId String? @unique
+  industry Industry? @relation(fields: [industryId], references: [id])
+
+  subIndustryId String? @unique
+  subIndustry SubIndustry? @relation(fields: [subIndustryId], references: [id])
+
+  timezone String?
+  language String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@index([email])
   @@index([otp])
   @@index([createdAt])
+  @@index([industryId])
+  @@index([subIndustryId])
 
 }
+
+
+
 enum SocialPlatform {
   FACEBOOK
   TWITTER
@@ -86,7 +103,7 @@ model Industry {
   id          String        @id @default(uuid())
   name        String
   subIndustries SubIndustry[]
-
+  user    User?
   @@index([name])
 }
 
@@ -98,7 +115,7 @@ model SubIndustry {
   images      Image[]
    reels       Reel[] 
   contents   Content[]
-  
+    user      User? 
     calendarPosts CalendarPost[]
   @@index([industryId])
   @@index([name])

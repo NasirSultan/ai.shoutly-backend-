@@ -41,4 +41,11 @@ async uploadMultipleFiles(files: Express.Multer.File[]): Promise<{ imageUrl: str
     const uploaded = await this.uploadFile(file)
     return uploaded.imageUrl
   }
+    async deleteFile(deleteUrl: string) {
+    try {
+      await axios.get(deleteUrl);
+    } catch (error: any) {
+      throw new InternalServerErrorException(error.response?.data || error.message);
+    }
+  }
 }
