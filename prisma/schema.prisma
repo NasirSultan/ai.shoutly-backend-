@@ -26,7 +26,7 @@ model User {
   brandLogo String?
   website String?
 
-  connectedSocials SocialPlatform[]
+  facebookAccount FacebookAccount?
 
   emailNotification Boolean @default(true)
   pushNotification Boolean @default(false)
@@ -34,7 +34,7 @@ model User {
   linkedAccounts LinkedAccount[]
   role UserRole @default(USER)
   subscriptions Subscription[]
-
+   connectedSocials SocialPlatform[] @default([])
   jobTitle String?
 
   industryId String? @unique
@@ -272,6 +272,40 @@ enum PostType {
 
 enum PostStatus {
   SCHEDULED
+  POSTING 
   SKIP
   POSTED
+  FAILED
+}
+
+
+
+
+
+model FacebookAccount {
+  id          String   @id @default(uuid())
+  accessToken String   // user-level token from OAuth
+
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  pages       FacebookPage[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model FacebookPage {
+  id              String   @id @default(uuid())
+  pageId          String
+  pageAccessToken String
+  pageName        String?  // optional but helpful
+  isDefault          Boolean  @default(false)
+  facebookAccountId String
+  facebookAccount   FacebookAccount @relation(fields: [facebookAccountId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([facebookAccountId, pageId]) // prevent duplicate pages per account
 }

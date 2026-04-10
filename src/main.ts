@@ -12,7 +12,7 @@ async function bootstrap() {
     credentials: true
   })
 
-  const port = process.env.PORT || 5000
+  const port = process.env.PORT || 3000
 
   const server = await app.listen(port)
   server.setTimeout(300000)
