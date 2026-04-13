@@ -76,4 +76,17 @@ async createPost(@Body() dto: CreatePostDto) {
 async getMyTokens(@Req() req) {
   return this.facebookService.getMyTokens(req.user.id);
 }
+
+@UseGuards(AuthGuard)
+@Post('direct-post')
+async directPost(@Req() req, @Body() body: { message: string; title?: string; imageUrl?: string; hashtags?: string[] }) {
+  return this.facebookService.directPost({
+    userId: req.user.id,
+    message: body.message,
+    title: body.title,
+    imageUrl: body.imageUrl,
+    hashtags: body.hashtags,
+  })
+}
+
 }

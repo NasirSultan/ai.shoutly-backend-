@@ -50,4 +50,35 @@ export class BrevoService {
       templateId: 1
     })
   }
+
+  async sendPostPublishedEmail(
+  toEmail: string,
+  userName: string,
+  pageName: string,
+  postedAt: string
+) {
+  const senderEmail = this.configService.get<string>('BREVO_SENDER_EMAIL')
+  const senderName = this.configService.get<string>('BREVO_SENDER_NAME')
+
+  if (!senderEmail || !senderName) {
+    throw new Error('Brevo sender config missing')
+  }
+
+  await this.apiInstance.sendTransacEmail({
+    sender: {
+      email: senderEmail,
+      name: senderName,
+    },
+    to: [{ email: toEmail, name: userName }],
+    subject: 'Your post is live on ' + pageName,
+    params: {
+      userName,
+      pageName,
+      postedAt,
+    },
+    templateId: 3,
+  })
+}
+
+
 }

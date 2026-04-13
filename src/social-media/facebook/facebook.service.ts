@@ -1,14 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import axios from 'axios';
-import { CreatePostDto } from './dto/post.dto';
+import { CreatePostDto ,DirectPostDto} from './dto/post.dto';
+import { DateTime } from 'luxon'
+import { BrevoService } from 'src/brevo/brevo.service'
 const prisma = new PrismaClient();
+
 
 @Injectable()
 export class FacebookService {
   private readonly appId = process.env.FB_APP_ID;
   private readonly appSecret = process.env.FB_APP_SECRET;
   private readonly redirectUri = process.env.FB_REDIRECT_URI;
+  private readonly brevoService: BrevoService;
+
+  constructor(brevoService: BrevoService) {
+    this.brevoService = brevoService;
+  }
 
   getOAuthUrl(state: string): string {
     return (
@@ -178,5 +186,46 @@ async getMyTokens(userId: string) {
     })),
   };
 }
+
+async directPost(dto: DirectPostDto) {
+  const account = await prisma.facebookAccount.findUnique({
+    where: { userId: dto.userId },
+    include: { pages: true },
+  })
+
+  if (!account) throw new Error('Facebook account not connected')
+
+  const defaultPage = account.pages.find((p) => p.isDefault) || account.pages[0]
+  if (!defaultPage) throw new Error('No Facebook page found')
+
+  const result = await this.postToPage({
+    pageId: defaultPage.pageId,
+    title: dto.title,
+    message: dto.message,
+    imageUrl: dto.imageUrl,
+    hashtags: dto.hashtags,
+  })
+
+  // Send notification email
+  const user = await prisma.user.findUnique({
+    where: { id: dto.userId },
+    select: { email: true, name: true, timezone: true },
+  })
+
+  if (user?.email) {
+    const tz = user.timezone || 'Asia/Karachi'
+    const postedAt = DateTime.now().setZone(tz).toFormat('MMM dd, yyyy \'at\' hh:mm a')
+
+    await this.brevoService.sendPostPublishedEmail(
+      user.email,
+      user.name,
+      defaultPage.pageName || defaultPage.pageId,
+      postedAt,
+    ).catch((err) => console.error('[Brevo] Email failed:', err.message))
+  }
+
+  return result
+}
+
 
 }

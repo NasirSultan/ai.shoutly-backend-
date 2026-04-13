@@ -3,6 +3,8 @@ import { Worker, Job } from 'bullmq'
 import { PrismaClient } from '@prisma/client'
 import { RedisService } from '../common/redis/redis.service'
 import { FacebookService } from '../social-media/facebook/facebook.service'
+import { BrevoService } from 'src/brevo/brevo.service'
+import { DateTime } from 'luxon'
 
 const prisma = new PrismaClient()
 
@@ -17,17 +19,18 @@ export class PostWorker implements OnModuleInit {
   constructor(
     private readonly redisService: RedisService,
     private readonly facebookService: FacebookService,
+    private readonly brevoService: BrevoService,
   ) {}
 
-onModuleInit() {
-  this.worker = new Worker<PublishJobData>(
-    'facebook-post',
-    async (job: Job<PublishJobData>) => this.process(job),
-    {
-      connection: this.redisService.createIORedisClient(),
-      concurrency: 5,
-    },
-  )
+  onModuleInit() {
+    this.worker = new Worker<PublishJobData>(
+      'facebook-post',
+      async (job: Job<PublishJobData>) => this.process(job),
+      {
+        connection: this.redisService.createIORedisClient(),
+        concurrency: 5,
+      },
+    )
 
     this.worker.on('completed', (job) => {
       console.log(`[Worker] Job ${job.id} completed`)
@@ -93,6 +96,23 @@ onModuleInit() {
       where: { id: calendarPostId },
       data: { status: 'POSTED' },
     })
+
+    const userData = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { email: true, name: true, timezone: true },
+    })
+
+    if (userData?.email) {
+      const tz = userData.timezone || 'Asia/Karachi'
+      const postedAt = DateTime.now().setZone(tz).toFormat("MMM dd, yyyy 'at' hh:mm a")
+
+      await this.brevoService.sendPostPublishedEmail(
+        userData.email,
+        userData.name,
+        defaultPage.pageName || defaultPage.pageId,
+        postedAt,
+      ).catch((err) => console.error('[Brevo] Email failed:', err.message))
+    }
 
     return result
   }

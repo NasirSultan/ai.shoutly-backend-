@@ -17,6 +17,7 @@ export class SubindustriesService {
     })
   }
 
+  
   async getAllSubindustries() {
     return this.prisma.subIndustry.findMany({
       include: { images: true, industry: true }
@@ -42,4 +43,7 @@ export class SubindustriesService {
       where: { id }
     })
   }
+
+
+  
 }
