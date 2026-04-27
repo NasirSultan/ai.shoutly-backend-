@@ -83,22 +83,23 @@ async setPassword(email: string, password: string) {
 }
 
 async updateProfile(email: string, profileData: any) {
+  const user = await this.prisma.user.findUnique({ where: { email } })
+  if (!user) throw new NotFoundException('User not found')
+
+  const { email: _, ...updateData } = profileData
+
+  const updated = await this.prisma.user.update({
+    where: { email },
+    data: updateData
+  })
+
   try {
-    const user = await this.prisma.user.findUnique({ where: { email } })
-    if (!user) throw new NotFoundException('User not found')
-
-    const { email: _, ...updateData } = profileData
-
-    const updated = await this.prisma.user.update({
-      where: { email },
-      data: updateData
-    })
-
-    return updated
-  } catch (error) {
-    if (error instanceof NotFoundException) throw error
-    throw new InternalServerErrorException('Failed to update profile')
+    await this.brevoService.sendWelcomeEmail(email, updated.name)
+  } catch (emailError) {
+    console.error('Welcome email failed:', emailError)
   }
+
+  return updated
 }
 
 

@@ -81,4 +81,21 @@ export class BrevoService {
 }
 
 
+async sendWelcomeEmail(toEmail: string, name: string) {
+  const senderEmail = this.configService.get<string>('BREVO_SENDER_EMAIL')
+  const senderName = this.configService.get<string>('BREVO_SENDER_NAME')
+
+  if (!senderEmail || !senderName) {
+    throw new Error('Brevo sender config missing')
+  }
+
+  await this.apiInstance.sendTransacEmail({
+    sender: { email: senderEmail, name: senderName },
+    to: [{ email: toEmail, name }],
+    subject: 'Welcome to Shoutly AI!',
+    params: { name },
+    templateId: 4   // new template in Brevo dashboard
+  })
+}
+
 }
